@@ -12,7 +12,6 @@ public class Mandelbrot implements Runnable{
     double xc;
     double yc; // Le point (xc,yc) est le centre de l'image
     int xoffset,yoffset;
-    //static volatile int i=0,j=0;
 
     Mandelbrot(double xc,double yc,int xoffset,int yoffset){
         this.xc=xc;
@@ -37,8 +36,6 @@ public class Mandelbrot implements Runnable{
     
     @Override
     public void run(){                               
-        //double xc   = -.5 ;
-        //double yc   = 0 ; // Le point (xc,yc) est le centre de l'image
         double region = 2;
         int max = 500; 
         for (int i = 0; i < taille/2; i++) {
@@ -49,13 +46,11 @@ public class Mandelbrot implements Runnable{
 		if (mandelbrot(a, b, max)){
                     synchronized(Mandelbrot.class){
                         image.set(i+xoffset, j+yoffset, noir);
-                        //System.out.println("1");
                     }
                 }
                 else{
                     synchronized(Mandelbrot.class){
                         image.set(i+xoffset, j+yoffset, blanc); 
-                        //System.out.println("2");
                     }
                 }    
 		// La fonction mandelbrot(a, b, max) determine si le point (a,b) est noir
