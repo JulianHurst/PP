@@ -7,7 +7,7 @@ import java.util.logging.Logger;
 public class Mandelbrot implements Runnable{
     final static Color noir =  new Color(0, 0, 0);
     final static Color blanc =  new Color(255, 255, 255);
-    static volatile int taille = 2000;
+    static volatile int taille = 7000;
     static volatile Picture image = new Picture(taille, taille);   
     double xc;
     double yc; // Le point (xc,yc) est le centre de l'image
@@ -66,7 +66,7 @@ public class Mandelbrot implements Runnable{
 	// Elle s'étend du point (xc-1,yc-1) au point (xc+1,yc+1)
 	// c'est-à-dire du point (-1.5,-1) en bas à gauche au
 	// point (0.5,1) en haut à droite
-        int taille = 2000;   // nombre de pixels par ligne (et par colonne)
+        //int taille = 2000;   // nombre de pixels par ligne (et par colonne)
 	// Il y a donc taille*taille pixels à déterminer
         //Picture image = new Picture(taille, taille);
         int max = 500; 
