@@ -4,7 +4,7 @@ import java.awt.Color;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class Mandelbrot implements Runnable{
+public class Mandelbrot1 implements Runnable{
     final static Color noir =  new Color(0, 0, 0);
     final static Color blanc =  new Color(255, 255, 255);
     static int taille = 2000;
@@ -12,8 +12,10 @@ public class Mandelbrot implements Runnable{
     double xc;
     double yc; // Le point (xc,yc) est le centre de l'image
     int xoffset,yoffset;
+    private volatile boolean libre = true;
+    private volatile int line = 0;
 
-    Mandelbrot(double xc,double yc,int xoffset,int yoffset){
+    Mandelbrot1(double xc,double yc,int xoffset,int yoffset){
         this.xc=xc;
         this.yc=yc;
         this.xoffset=xoffset;
@@ -35,28 +37,35 @@ public class Mandelbrot implements Runnable{
     }
     
     @Override
-    public void run(){                               
-        double region = 2;
-        int max = 500; 
-        for (int i = 0; i < taille/2; i++) {
-            for (int j = 0; j < taille/2; j++) {
-                double a = xc - region/2 + region*i/taille;
-                double b = yc - region/2 + region*j/taille;
-		// Le pixel (i,j) correspond au point (a,b)                
-		if (mandelbrot(a, b, max)){
-                    synchronized(Mandelbrot.class){
-                        image.set(i+xoffset, j+yoffset, noir);
-                    }
-                }
-                else{
-                    synchronized(Mandelbrot.class){
-                        image.set(i+xoffset, j+yoffset, blanc); 
-                    }
-                }    
-		// La fonction mandelbrot(a, b, max) determine si le point (a,b) est noir
-            }
-        }
+    public void run(){  
+		while(line!=taille)                             
+			calculimg();			
     }
+    
+    public synchronized void calculimg(){
+		while(!libre){
+			try{wait();}
+			catch (InterruptedException e){
+				e.printStackTrace();
+			}
+		}
+		libre = false;
+		double region = 2;
+        int max = 500;                 
+        for (int j = 0; j < taille; j++) {
+                double a = xc - region/2 + region*line/taille;
+                double b = yc - region/2 + region*j/taille;
+		// Le pixel (i,j) correspond au point (a,b)
+		if (mandelbrot(a, b, max))
+		    image.set(line, j, noir);
+		else
+		    image.set(line, j, blanc); 
+		// La fonction mandelbrot(a, b, max) determine si le point (a,b) est noir
+        }       
+        line++;
+        libre=true;
+        notifyAll();
+	}
 
     public static void main(String[] args)  {
         double xc   = -.5 ;
@@ -69,18 +78,18 @@ public class Mandelbrot implements Runnable{
         //int taille = 2000;   // nombre de pixels par ligne (et par colonne)
 	// Il y a donc taille*taille pixels à déterminer
         //Picture image = new Picture(taille, taille);
-        int max = 500; 
+        //int max = 500; 
 	// C'est le nombre maximum d'itérations pour le calcul d'un pixel
 	final long startTime = System.nanoTime();
 	final long endTime;        
-        Thread t1=new Thread(new Mandelbrot(-.5,0,0,0));
-        Thread t2=new Thread(new Mandelbrot((-.5+1),0,taille/2,0));
-        Thread t3=new Thread(new Mandelbrot(-.5,1,0,taille/2));
-        Thread t4=new Thread(new Mandelbrot((-.5+1),1,taille/2,taille/2));
+        Thread t1=new Thread(new Mandelbrot1(-.5,0,0,0));
+        Thread t2=new Thread(new Mandelbrot1((-.5+1),0,taille/2,0));
+        Thread t3=new Thread(new Mandelbrot1(-.5,1,0,taille/2));
+        Thread t4=new Thread(new Mandelbrot1((-.5+1),1,taille/2,taille/2));
         t1.start();
         t2.start();
         t3.start();
-        t4.start();        
+        t4.start(); 
         try {
             t1.join();
             t2.join();
