@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -39,9 +40,9 @@ public class BranchandBound {
             x[i]=true;
         obj.add(new Objet(4,8));
         obj.add(new Objet(6,6));
-        obj.add(new Objet(8,2));
-        obj.add(new Objet(8,4));
+        obj.add(new Objet(8,4));               
         obj.add(new Objet(10,4));
+        obj.add(new Objet(8,2));
         obj.add(new Objet(9,3));
     }
 
@@ -106,35 +107,67 @@ public class BranchandBound {
     }
 
     public void combrec(int nbfils){
-        float somvtmp;
-        //boolean retour=false;
+        float somvtmp;        
         somvtmp=sol();
         if(somvtmp>somv){
             somv=somvtmp;
             System.arraycopy(x, 0, best, 0, n);
         }
-        if(nbfils==0 || somw==0){
-            //if(somw==0 && somvtmp<=somv && !retour)
-              //  retour=true;
-            //System.out.print(" nbfils "+somw+" "+somv+" "+somvtmp);
+        if(nbfils==0 || somw==0){            
             return;
         }
         for(int i=0;i<n;i++){
             if(!x[i]){
                 x[i]=true;
-                //System.out.print(obj.get(i).getpoids()+" ");
                 combrec(nbfils-1);
-                x[i]=false;
-                //System.out.println(" remonte "+obj.get(i).getpoids());
+                x[i]=false;                
             }
         }
-
     }
+    
+    public void combrecbin(int i){        
+        float somvtmp;        
+        somvtmp=sol();
+        if(somvtmp>somv){
+            somv=somvtmp;
+            System.arraycopy(x, 0, best, 0, n);
+        }
+        if(i==n || somw==0){            
+            return;
+        }        
+        x[i]=true;
+        System.out.println("obj "+i+" pris");        
+        combrecbin(i+1);
+        x[i]=false; 
+        System.out.println("obj "+i+" retiré");        
+        combrecbin(i+1);
+    }
+    
+    /*public float combrecbinssarb(int i){        
+        float somvtmp;
+        float val=0;
+        somvtmp=sol();
+        if(somvtmp>val){
+            val=somvtmp;
+            //System.arraycopy(x, 0, best, 0, n);
+        }
+        if(i==n || somw==0){            
+            return val;
+        }                    
+        x[i]=true;
+        //System.out.println("obj "+i+" pris");        
+        val=combrecbinssarb(i+1);
+        x[i]=false; 
+        //System.out.println("obj "+i+" retiré");        
+        val=combrecbinssarb(i+1);
+        return val;
+    }*/
 
     public List<Objet> copy(List<Objet> x){
         List<Objet> tmp= new ArrayList<>();
-        for(int i=0;i<x.size();i++)
-            tmp.add(x.get(i));
+        for (Objet x1 : x) {
+            tmp.add(x1);
+        }
         return tmp;
     }
 
@@ -164,7 +197,9 @@ public class BranchandBound {
         System.out.println("1. valeur trouvée : "+B.sol()+"\n");
         if(args.length==1){
             BranchandBound B2=new BranchandBound(args[0]);
-            B2.combrec(B2.obj.size());
+            //B2.combrec(B2.obj.size());
+            //Collections.sort(B2.obj);
+            B2.combrecbin(0);
             System.out.println("meilleure valeur : "+B2.somv);
             B2.printx(B2.best);
         }
