@@ -6,13 +6,14 @@ import java.util.logging.Logger;
 
 public class Barque{
     public enum Berge { NORD, SUD }
-    final static int nbNainsAuNord = 6;
+    final static int nbNainsAuNord = 8;
     final static int nbHobbitsAuNord = 0;
     final static int nbNainsAuSud = 4;
     final static int nbHobbitsAuSud = 0;
     volatile int nbPassagers = 0;
     Berge berge;
-    boolean arret = true;
+    boolean arretc = true;
+    boolean arretd = false;
     public static void main(String[] args){
 	Barque laBarque = new Barque();
 	new Passeur(laBarque);
@@ -24,33 +25,57 @@ public class Barque{
 
     /* Code associé au passeur */
     public synchronized void accosterLaBerge(Berge berge){
-        this.berge=berge;
-        arret=true;
+        this.berge=berge;        
     }
     public synchronized void charger(){  
+        arretc=true;
         notifyAll(); 
-        arret=false;
+        while(nbPassagers<4){
+            try{
+                wait();
+            } catch (InterruptedException ex) {
+                Logger.getLogger(Barque.class.getName()).log(Level.SEVERE, null, ex);
+            } 
+        }
+        arretc=false;
     }
-    public synchronized void decharger(){        
+    public synchronized void decharger(){  
+        arretd=true;
         notifyAll();
-        arret=false;
+        while(nbPassagers>0){
+            try{
+                wait();
+            } catch (InterruptedException ex) {
+                Logger.getLogger(Barque.class.getName()).log(Level.SEVERE, null, ex);
+            } 
+        }
+        arretd=false;
     }
 
     /* Code associé aux nains */
     public synchronized void embarquerUnNain(Berge origine){        
-        while(!arret || nbPassagers>=4 || berge!=origine){
+        while(!arretc || nbPassagers>=4 || berge!=origine){
             try {
+                //System.out.println(Thread.currentThread().getName()+" attend "+nbPassagers+" "+arret);
                 wait();
             } catch (InterruptedException ex) {
                 Logger.getLogger(Barque.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        nbPassagers++;
+        nbPassagers++;        
         System.out.println(Thread.currentThread().getName()+" embarque : "+nbPassagers);
+        notifyAll();
     }
     public synchronized void debarquerUnNain(Berge origine){
-        if(arret && nbPassagers>0)
-            nbPassagers--;
+        while(!arretd || nbPassagers==0 || berge==origine){
+            try {
+                //System.out.println(Thread.currentThread().getName()+" attend "+nbPassagers+" "+arret);
+                wait();
+            } catch (InterruptedException ex) {
+                Logger.getLogger(Barque.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        nbPassagers--;
         System.out.println(Thread.currentThread().getName()+" débarque : "+nbPassagers);
         notifyAll();
     }
